@@ -130,6 +130,12 @@ app.get('/company', async (req, res) => {
 app.post('/foods', async (req, res) => {
     try {
         const { name, description, price } = req.body;
+
+        // Validate that required fields are not empty or null
+        if (!name || !description || !price) {
+            return res.status(400).json({ error: 'Name, description, and price are required fields' });
+        }
+
         const connection = await pool.getConnection();
         const result = await connection.query("INSERT INTO foods (name, description, price) VALUES (?, ?, ?)", [name, description, price]);
         connection.end();
@@ -140,6 +146,7 @@ app.post('/foods', async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 });
+
 /**
  * @swagger
  * /foods/{id}:
@@ -221,18 +228,18 @@ app.patch('/foods/:id', async (req, res) => {
  */
 app.put('/foods/:id', async (req, res) => {
     try {
-        const { id } = req.params; // Extract the food item ID from the URL parameter
-        const { ITEM_NAME, ITEM_UNIT, COMPANY_ID } = req.body; // Extract the updated data from the request body
+        const { id } = req.params;
+        const { ITEM_NAME, ITEM_UNIT, COMPANY_ID } = req.body;
+        // Validate that all fields are provided
+        if (!ITEM_NAME || !ITEM_UNIT || !COMPANY_ID) {
+            return res.status(400).json({ error: 'ITEM_NAME, ITEM_UNIT, and COMPANY_ID are required fields for replacement' });
+        }
         const connection = await pool.getConnection();
-
-        // Check if the food item with the specified ID exists
         const existingFood = await connection.query("SELECT * FROM foods WHERE ITEM_ID=?", [id]);
         if (existingFood.length === 0) {
             connection.end();
             return res.status(404).json({ error: 'Food item not found' });
         }
-
-        // Replace the entire food item with the updated data
         await connection.query("UPDATE foods SET ITEM_NAME=?, ITEM_UNIT=?, COMPANY_ID=? WHERE ITEM_ID=?", [ITEM_NAME, ITEM_UNIT, COMPANY_ID, id]);
 
         connection.end();
@@ -243,6 +250,7 @@ app.put('/foods/:id', async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 });
+
 
 /**
  * @swagger
