@@ -32,6 +32,19 @@ const pool = mariadb.createPool({
     connectionLimit: 50,
 });
 
+app.get('/say', async (req, res) => {
+    try {
+        const keyword = req.query.keyword;
+        const response = await axios.get('https://lik9d55ked.execute-api.us-east-1.amazonaws.com/prod/assignment09', {
+            params: { keyword },
+        });
+        res.send(response.data);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Internal server error');
+    }
+});
+
 /**
  * @swagger
  * /foods:
